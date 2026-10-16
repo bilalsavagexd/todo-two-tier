@@ -34,7 +34,7 @@ Create a named volume for persistent database storage
 docker volume create todo-data
 ```
 
-Tier 2: Start the PostgreSQL database
+Start the PostgreSQL database
 
 ```
 docker run -d \
@@ -45,6 +45,23 @@ docker run -d \
   -e POSTGRES_USER=todo_user \
   -e POSTGRES_PASSWORD=todo_pass \
   postgres:16
+```
+
+Build your app image
+
+```
+docker build -t todo-app .
+```
+
+Start the app
+
+```
+docker run -d --name app --network todo-net -p 5000:5000 \
+  -e DB_HOST=db \
+  -e DB_NAME=todos \
+  -e DB_USER=todo_user \
+  -e DB_PASSWORD=todo_pass \
+  todo-app
 ```
 
 Open `http://localhost:5000`
