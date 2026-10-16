@@ -67,9 +67,9 @@ services:
   db:
     image: postgres:16
     environment:
-      POSTGRES_DB: todos
-      POSTGRES_USER: todo_user
-      POSTGRES_PASSWORD: todo_pass
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - db-data:/var/lib/postgresql/data
     healthcheck:
@@ -83,9 +83,9 @@ services:
     ports:
       - "5000:5000"
     environment:
-      DB_HOST: db
-      DB_NAME: todos
-      DB_USER: todo_user
+      DB_HOST: ${DB_HOST}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
     depends_on:
       db:
