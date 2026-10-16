@@ -1,3 +1,5 @@
+## Step 1: Write the Dockerfile for the app
+
 Create `Dockerfile` in the project root:
 
 ```
