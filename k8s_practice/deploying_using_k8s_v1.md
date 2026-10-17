@@ -1,3 +1,5 @@
+In this doc. I practice how to simply deploy a two-tier todo app in k8s and expose it locally.
+
 ## Step#01: Initial Setup;
 
 - 2 Pods, one for the app container and other for the db,

@@ -1,3 +1,5 @@
+In this doc. we are practicing deployments, configmaps + secrets, persistence, and statefulsets.
+
 In the previous version the `app` Pod did not have any self-healing ability so the `app` Pod was replaced with a `Deployment`.
 
 Create `app-deploy.yaml`:
@@ -123,7 +125,7 @@ basically each key became a file, which our app doesn't read,
 The key needs to become an *environment variable*, which our app does read.
 
 ```
-A volume is the right tool when the apps config *files*, which ours doesn't.
+A volume is the right tool when the apps reads config *files*, which ours doesn't.
 ```
 
 So we need to use method one i.e. `Environment Variables`.
@@ -186,13 +188,72 @@ spec:
               configMapKeyRef:
                 name: app-config
                 key: DB_PASSWORD
-```
 
-<!--
 # Or load all ConfigMap keys as environment variables          >
 #         envFrom:
 #         - configMapRef:
-#             name: 
---!>
+#             name: app-config
+```
 
+It worked sucessfully so I proceeded to create the `secret.yaml` file:
 
+```
+apiVersion: v1
+kind: Secret
+metadata:
+  name: app-secrets
+  namespace: todo
+type: Opaque #Generic secrets for arbitrary user data (default)
+stringData: #instead of normal Data so is auto-encodes the data
+  DB_USER: todo_user
+  DB_PASSWORD: todo_pass
+```
+
+apply it.
+
+Now I have to edit `app-deploy.yaml` so that it can consume it,
+
+Edit `app-deploy.yaml`:
+
+```
+# Changes made:
+
+          - name: DB_USER
+            valueFrom:
+              secretKeyRef:
+                name: app-secrets
+                key: DB_USER
+
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: app-secrets
+                key: DB_PASSWORD
+
+# Or load all Secret keys as environment variables
+#         envFrom:
+#         - secretRef:
+#             name: app-secrets
+```
+
+Other types of secrets are:
+
+1. kubernetes.io/dockerconfigjson: Docker registry credentials
+2. kubernetes.io/tls: TLS certificates and keys
+3. kubernetes.io/service-account-token: Service account tokens
+
+## One behaviour to know
+
+Environment variables are read once, when the container starts. If you edit the ConfigMap later, running pods won’t see the change. Restart them with:
+
+```
+kubectl rollout restart deploy/todo-app-deployment
+```
+
+Volume-mounted ConfigMaps do update live, after a short delay.
+
+```
+Also whatever we did regarding configMaps and secrets, we have to do it for the db-pod.yaml as well.
+```
+
+## Next step: make the database survive
