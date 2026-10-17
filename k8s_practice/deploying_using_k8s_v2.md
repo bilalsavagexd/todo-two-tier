@@ -1,4 +1,4 @@
-In previous version the `app` Pod did not have any self-healing ability so the `app` Pod was replaced with a `Deployment`.
+In the previous version the `app` Pod did not have any self-healing ability so the `app` Pod was replaced with a `Deployment`.
 
 Create `app-deploy.yaml`:
 
@@ -13,11 +13,11 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: app
+      app: app-pod
   template:
     metadata:
       labels:
-        app: app
+        app: app-pod
     spec:
       enableServiceLinks: false
       containers:
@@ -49,16 +49,16 @@ metadata:
   name: app-config
   namespace: todo
 data:
-  PORT: "5432"
+  DB_PORT: "5432"
   DB_HOST: "db"
   DB_NAME: "todos"
   DB_USER: "todo_user"
-  DB_PASS: "todo_pass"
+  DB_PASSWORD: "todo_pass"
 ```
 
 apply config `kubectl apply -f apply-config.yaml`.
 
-Then I applied setting to consume ConfigMaps in my App,
+Then I applied settings metioned below to `consume ConfigMaps in my App`,
 
 There were three primary ways to use ConfigMaps in my pods:
 
@@ -101,6 +101,98 @@ spec:
       - name: config-volume
 	configMap:
 	  name: app-config
+
 ```
+
+Basically what the newly added flow does is:
+
+1. Kubernetes finds the `app-config` ConfigMap.
+
+2. It uses that ConfigMap to populate the `config-volume` volume.
+
+3. The container mounts config-volume at `/etc/config`.
+
+4. The application can `read` the configuration files from that directory.
+
+After applying the `app-deploy.yaml` file I hit my first issue and it was the I chose the wrong way:
+
+I mounted the ConfigMap as files, not as environment variable,
+
+basically each key became a file, which our app doesn't read,
+
+The key needs to become an *environment variable*, which our app does read.
+
+```
+A volume is the right tool when the apps config *files*, which ours doesn't.
+```
+
+So we need to use method one i.e. `Environment Variables`.
+
+Edit `app-deploy.yaml`:
+
+```
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: todo-app-deployment
+  labels:
+    app: app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app-pod
+  template:
+    metadata:
+      labels:
+        app: app-pod
+    spec:
+      enableServiceLinks: false
+      containers:
+        - name: todo-app-container
+          image: esbilal/todo-app:1.0
+          ports:
+            - containerPort: 5000
+
+# Load environment variables indivisually
+          env:
+          - name: DB_PORT
+            valueFrom:
+              configMapKeyRef:
+                name: app-config
+                name: app-config
+                key: DB_PORT
+
+          - name: DB_HOST
+            valueFrom:
+              configMapKeyRef:
+                name: app-config
+                key: DB_HOST
+
+          - name: DB_NAME
+            valueFrom:
+              configMapKeyRef:
+                name: app-config
+                key: DB_NAME
+
+          - name: DB_USER
+            valueFrom:
+              configMapKeyRef:
+                name: app-config
+                key: DB_USER
+
+          - name: DB_PASSWORD
+            valueFrom:
+              configMapKeyRef:
+                name: app-config
+                key: DB_PASSWORD
+```
+
+<!--
+# Or load all ConfigMap keys as environment variables          >
+#         envFrom:
+#         - configMapRef:
+#             name: 
+--!>
 
 

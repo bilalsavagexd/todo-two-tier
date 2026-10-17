@@ -55,7 +55,7 @@ kind: Pod
 metadata:
   name: app
   labels:
-    app: app
+    app: app-pod
 spec:
   containers:
     - name: app
@@ -86,7 +86,7 @@ metadata:
 spec:
   type: NodePort
   selector:
-    app: app
+    app: app-pod
   ports:
     - port: 5000
       targetPort: 5000
