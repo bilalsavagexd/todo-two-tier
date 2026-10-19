@@ -256,4 +256,7 @@ Volume-mounted ConfigMaps do update live, after a short delay.
 Also whatever we did regarding configMaps and secrets, we have to do it for the db-pod.yaml as well.
 ```
 
-## Next step: make the database survive
+## Next steps
+
+1. Adding a persistent storage
+2. Implementing Statefulsets
