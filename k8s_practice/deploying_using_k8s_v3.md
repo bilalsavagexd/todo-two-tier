@@ -8,10 +8,10 @@ Implementing persistent storage with Rook + Ceph first,
 
 Current VMware setup:
 
-1. k8s-master, k8s-worker1, k8s-worker2:
-        - memory: 5GB # free -h
-        - VCPUs: 2 # nproc
-        - Disks: 25GB OS + 20GB raw # lsblk -f, sda with parts., plus sdb with no parts.
+k8s-master, k8s-worker1, k8s-worker2: 
+- memory: 5GB # free -h
+- VCPUs: 2 # nproc
+- Disks: 25GB OS + 20GB raw # lsblk -f, sda with parts., plus sdb with no parts.
 
 Prepare every node:
 
@@ -26,12 +26,20 @@ Prep. the cluster, check all nodes are ready:
 ```
 kubectl get nodes -o wide
 ```
+Normally, the master has a sign saying:
+"Control-plane machine. Ordinary workloads stay away!"
 
-Allow oridinary workloads to be run again on the master node by removing the taint:
-
+The command:
 ```
 kubectl taint nodes k8s-master node-role.kubernetes.io/control-plane:NoSchedule-
 ```
+removes that restriction.
+
+Now Kubernetes may schedule ordinary workloads, such as database or Ceph Pods, on the master too, subject to their other scheduling requirements.
+
+Why do this? You have only three small VMs, so you may need to use all three for storage and workloads.
+
+This does not turn the master into a worker node in every respect; it simply removes this particular scheduling restriction.
 
 Install the Rook operator:
 
