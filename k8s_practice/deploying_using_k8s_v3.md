@@ -135,6 +135,9 @@ spec:
           image: postgres:16
           ports:
             - containerPort: 5432
+          volumeMounts:
+            - name: db-storage
+              mountPath: /var/lib/postgresql/data
           env:
             - name: POSTGRES_DB
               valueFrom:
@@ -153,6 +156,7 @@ spec:
                   key: DB_PASSWORD
             - name: PGDATA
               value: /var/lib/postgresql/data/pgdata
+
   volumeClaimTemplates:
     - metadata:
         name: db-storage
